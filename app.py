@@ -29,7 +29,7 @@ def get_response(user_message):
 
         try:
             stream = openai.ChatCompletion.create(
-                model="o1-mini",
+                model="gpt-4o",
                 messages=messages,
                 stream=True,
             )
