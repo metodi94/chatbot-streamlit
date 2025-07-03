@@ -1,1 +1,55 @@
-import openai\nimport streamlit as st\nimport os\n\nopenai.api_key = os.getenv(\"OPENAI_API_KEY\")\n\n# Configuración básica de la página\nst.set_page_config(page_title=\"ChatBot Interactivo\", page_icon=\"🤖\")\n\n# Título de la aplicación\nst.title(\"🤖 Chatbot\")\n\nst.write('Bienvenido a la aplicación de chatBot, preguntame lo que necesites.')\n\n# Inicializar el historial de mensajes si no existe\nif 'chat_history' not in st.session_state:\n    st.session_state['chat_history'] = []\n\ndef get_response(user_message):\n    st.session_state['chat_history'].append({'role': 'user', 'content': user_message})\n    with st.chat_message('user'):\n        st.markdown(user_message)\n\n    response_buffer = \"\"\n    messages = [{'role': msg['role'], 'content': msg['content']} for msg in st.session_state['chat_history']]\n\n    with st.chat_message('assistant'):\n        response_placeholder = st.empty()\n\n        try:\n            stream = openai.ChatCompletion.create(\n                model=\"gpt-4o\",\n                messages=messages,\n                stream=True,\n            )\n            for chunk in stream:\n                if chunk['choices'][0]['delta'].get('content'):\n                    response_buffer += chunk['choices'][0]['delta']['content']\n                    response_placeholder.markdown(response_buffer)\n        except Exception as e:\n            response_placeholder.markdown(f\"Error al comunicarse con el modelo: {e}\")\n    \n    st.session_state['chat_history'].append({'role': 'assistant', 'content': response_buffer})\n\n# Mostrar el historial del chat si existe\nif st.session_state['chat_history']:\n    for message in st.session_state['chat_history']:\n        with st.chat_message(message['role']):\n            st.markdown(message['content'])\n\n# Entrada de texto para el usuario\nif prompt := st.chat_input(\"Escribe tu pregunta aquí:\"):\n    get_response(prompt)\n\n# Hola esto es una prueba de pull request\n
+import openai
+import streamlit as st
+import os
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# Configuración básica de la página
+st.set_page_config(page_title="ChatBot Interactivo", page_icon="🤖")
+
+# Título de la aplicación
+st.title("🤖 Chatbot")
+
+st.write('Bienvenido a la aplicación de chatBot, preguntame lo que necesites.')
+
+# Inicializar el historial de mensajes si no existe
+if 'chat_history' not in st.session_state:
+    st.session_state['chat_history'] = []
+
+def get_response(user_message):
+    st.session_state['chat_history'].append({'role': 'user', 'content': user_message})
+    with st.chat_message('user'):
+        st.markdown(user_message)
+
+    response_buffer = ""
+    messages = [{'role': msg['role'], 'content': msg['content']} for msg in st.session_state['chat_history']]
+
+    with st.chat_message('assistant'):
+        response_placeholder = st.empty()
+
+        try:
+            stream = openai.ChatCompletion.create(
+                model="gpt-4o",
+                messages=messages,
+                stream=True,
+            )
+            for chunk in stream:
+                if chunk['choices'][0]['delta'].get('content'):
+                    response_buffer += chunk['choices'][0]['delta']['content']
+                    response_placeholder.markdown(response_buffer)
+        except Exception as e:
+            response_placeholder.markdown(f"Error al comunicarse con el modelo: {e}")
+    
+    st.session_state['chat_history'].append({'role': 'assistant', 'content': response_buffer})
+
+# Mostrar el historial del chat si existe
+if st.session_state['chat_history']:
+    for message in st.session_state['chat_history']:
+        with st.chat_message(message['role']):
+            st.markdown(message['content'])
+
+# Entrada de texto para el usuario
+if prompt := st.chat_input("Escribe tu pregunta aquí:"):
+    get_response(prompt)
+
+# Hola esto es una prueba de pull request
